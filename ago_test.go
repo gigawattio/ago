@@ -34,12 +34,42 @@ func TestParse(t *testing.T) {
 			expected: timeP(now.Add(-60 * time.Second)),
 		},
 		{
+			input:    "0.5m",
+			expected: timeP(now.Add(-30 * time.Second)),
+		},
+		{
 			input:    "1 hour",
 			expected: timeP(now.Add(-1 * time.Hour)),
 		},
 		{
 			input:    "60 hours ago",
 			expected: timeP(now.Add(-60 * time.Hour)),
+		},
+		{
+			input:    "5m4s ",
+			expected: timeP(now.Add(-304 * time.Second)),
+		},
+		{
+			input:    "5 m4s ",
+			expected: timeP(now.Add(-304 * time.Second)),
+		},
+		{
+			input:    " 5min 4 s ",
+			expected: timeP(now.Add(-304 * time.Second)),
+		},
+		{
+			input: "4s    2      days	",
+			expected: timeP(now.Add(-48 * time.Hour).Add(-4 * time.Second)),
+		},
+		{
+			input: `
+				4 mins    2		    days	
+		  ago  `,
+			expected: timeP(now.Add(-48*time.Hour + -240*time.Second)),
+		},
+		{
+			input:    `60.1 h 6s`,
+			expected: timeP(now.Add(-60*time.Hour + -6*time.Minute + -6*time.Second)),
 		},
 	}
 
@@ -79,7 +109,7 @@ func TestDuration(t *testing.T) {
 		},
 		{
 			amount:   "60",
-			unit:     "seconds",
+			unit:     "secs",
 			expected: durationP(60 * time.Second),
 		},
 		{
@@ -89,18 +119,23 @@ func TestDuration(t *testing.T) {
 		},
 		{
 			amount:   "1",
-			unit:     "hour",
+			unit:     "hrs",
 			expected: durationP(1 * time.Hour),
 		},
 		{
 			amount:   "60",
-			unit:     "hours",
+			unit:     "hour",
 			expected: durationP(60 * time.Hour),
+		},
+		{
+			amount:   "60.1",
+			unit:     "hours",
+			expected: durationP(60*time.Hour + 6*time.Minute),
 		},
 	}
 
 	for i, testCase := range testCases {
-		actual := Duration(testCase.amount, testCase.unit)
+		actual := duration(testCase.amount, testCase.unit)
 		if testCase.expected == nil {
 			if actual != nil {
 				t.Errorf("[i=%v] Expected result=%+v but actual=%+v for testCase=%# v", i, testCase.expected, actual, testCase)
